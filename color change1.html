@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List (Hidden Until Search)</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .todo-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 12px 0;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: #4CAF50;
+        }
+        .task-btn {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .task-btn:hover {
+            background-color: #45a049;
+        }
+        .todo-list {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .todo-item span {
+            flex-grow: 1;
+            font-size: 18px;
+            word-wrap: break-word;
+        }
+        .todo-item button {
+            padding: 8px 15px;
+            font-size: 14px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .todo-item .edit-btn {
+            background-color: #FFA500;
+        }
+        .todo-item .edit-btn:hover {
+            background-color: #e68926;
+        }
+        .todo-item .delete-btn {
+            background-color: #FF4C4C;
+        }
+        .todo-item .delete-btn:hover {
+            background-color: #e04e4e;
+        }
+        .no-tasks {
+            color: #999;
+            font-size: 18px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            margin: 12px 0;
+            border: 2px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="todo-container">
+    <h2>To-Do List (Hidden Until Search)</h2>
+    
+    <!-- Search bar -->
+    <input type="text" id="search" class="search-input" placeholder="Search tasks..." onkeyup="searchTasks()">
+    
+    <!-- Input to add new task -->
+    <input type="text" id="task" placeholder="Add a new task">
+    
+    <!-- Button to add new task -->
+    <button class="task-btn" onclick="addTask()">Add Task</button>
+    
+    <!-- List of tasks (hidden by default) -->
+    <ul id="todo-list" class="todo-list"></ul>
+    <p id="no-tasks" class="no-tasks" style="display: none;">No tasks available. Add a task!</p>
+</div>
+
+<script>
+    let tasks = [];
+
+    // Function to add task
+    function addTask() {
+        const taskInput = document.getElementById('task');
+        const taskText = taskInput.value.trim();
+        
+        if (taskText) {
+            tasks.push({ text: taskText, id: new Date().getTime() });
+            taskInput.value = ''; // Clear the input field
+            document.getElementById('no-tasks').style.display = 'none'; // Hide "No tasks" message
+        } else {
+            alert('Please enter a task!');
+        }
+    }
+
+    // Function to render tasks based on search query
+    function renderTasks(filteredTasks) {
+        const todoList = document.getElementById('todo-list');
+        todoList.innerHTML = ''; // Clear the list before rendering
+
+        // If no tasks match the search, show the 'no tasks found' message
+        if (filteredTasks.length === 0) {
+            document.getElementById('no-tasks').style.display = 'block';
+        } else {
+            document.getElementById('no-tasks').style.display = 'none';
+            filteredTasks.forEach(task => {
+                const li = document.createElement('li');
+                li.classList.add('todo-item');
+                
+                const span = document.createElement('span');
+                span.textContent = task.text;
+                li.appendChild(span);
+
+                const editBtn = document.createElement('button');
+                editBtn.textContent = 'Edit';
+                editBtn.classList.add('edit-btn');
+                editBtn.onclick = () => editTask(task.id);
+                li.appendChild(editBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => deleteTask(task.id);
+                li.appendChild(deleteBtn);
+
+                todoList.appendChild(li);
+            });
+        }
+    }
+
+    // Function to search tasks
+    function searchTasks() {
+        const searchInput = document.getElementById('search').value.toLowerCase();
+        
+        // Filter the tasks that match the search input
+        const filteredTasks = tasks.filter(task => task.text.toLowerCase().includes(searchInput));
+        
+        // Render the filtered tasks (or show no tasks found)
+        renderTasks(filteredTasks);
+    }
+
+    // Function to edit task
+    function editTask(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        const newTaskText = prompt('Edit your task:', task.text);
+        
+        if (newTaskText !== null && newTaskText.trim() !== '') {
+            task.text = newTaskText.trim(); // Update task text
+            searchTasks(); // Re-search and re-render tasks
+        }
+    }
+
+    // Function to delete task
+    function deleteTask(taskId) {
+        tasks = tasks.filter(task => task.id !== taskId); // Remove task from array
+        searchTasks(); // Re-search and re-render tasks
+    }
+</script>
+
+</body>
+</html>
